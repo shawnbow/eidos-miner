@@ -2,11 +2,9 @@
 
 EIDOS miner, 1000 times faster than your phone!
 
-[![Version npm](https://img.shields.io/npm/v/eidos-miner.svg?style=flat-square)](https://www.npmjs.com/package/eidos-miner)[![NPM downloads](http://img.shields.io/npm/dm/eidos-miner.svg?style=flat-square)](http://npmjs.com/eidos-miner)
-
 ## Start mining
-
-    npx eidos-miner --account your_eos_account --private_key your_private_key
+    npm i
+    node ./index.js --account your_eos_account --private_key your_private_key
 
 ## How to mine faster
 
@@ -14,7 +12,7 @@ This miner automatically adjusts its speed, so you don't need to worry about the
 
 If you do want to specify `num_actions` by yourself, set it as the following:
 
-    npx eidos-miner --account your_eos_account --private_key your_private_key --num_actions 8
+    node ./index.js --account your_eos_account --private_key your_private_key --num_actions 8
 
 Under the hood, this miner sends one transaction with several(let's say `num_actions`) actions per second. The larger `num_actions` the faster it mines. But large `num_actions` is **NOT** always good, for example, if you use all your CPU in a very shot time, you do get a lot of coins very quickly, but you're not able to send any transaction in the next few hours, which means you lose the chance to play the game until your CPU recover.
 
@@ -24,8 +22,4 @@ Since the EIDOS smart contract distributes EIDOS in constant speed, i.e., 20 EID
 
 ## Help
 
-    npx eidos-miner -h
-
-## Donation
-
-This tool will donate 5% of mined EIDOS to the author by default, if you don't want to donate, you can disable it by passing `--donation false`.
+    node ./index.js -h
