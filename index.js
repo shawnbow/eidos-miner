@@ -28,12 +28,12 @@ const { argv } = yargs
       description: 'The number of actions per transaction, 0 means automatic',
       type: 'number',
       default: 0,
-    },
-    donation: {
-      description: 'Donate 5% of mined EIDOS to the author',
-      type: 'boolean',
-      default: true,
-    },
+    } // ,
+    // donation: {
+    //   description: 'Donate 5% of mined EIDOS to the author',
+    //   type: 'boolean',
+    //   default: false,
+    // },
   })
   .check(function(argv) {
     if (isValidPrivate(argv.private_key)) {
@@ -47,6 +47,8 @@ const account = argv.account;
 const signatureProvider = new JsSignatureProvider([argv.private_key]);
 
 const API_ENDPOINTS = [
+  'https://api1.eosasia.one',
+  'https://mainnet.eos.dfuse.io',
   'https://mainnet.meet.one',
   'https://eos.infstones.io',
   'https://eos.eoscafeblock.com',
@@ -134,7 +136,7 @@ function format_cpu_rate(cpu_rate) {
  * @param {string} quantity - EOS quantity.
  * @returns {Object}
  */
-function create_action(account, quantity = '0.0003') {
+function create_action(account, quantity = '0.0001') {
   assert(typeof quantity === 'string');
 
   return {
@@ -185,27 +187,27 @@ async function send_eidos(from, to, quantity, memo = '') {
 
 let prev_eidos_balance = 0;
 
-async function donate() {
-  const DONATION_RATIO = 0.05; // 5%
-  const current_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
-  const increased = current_eidos_balance - prev_eidos_balance;
-  if (increased > 50) {
-    // It's impossible to mine over 50 EIDOS in 10 seconds, so
-    // this must be a new deposit coming in
-    return;
-  }
-  const eidos_to_donate = increased * DONATION_RATIO;
-  if (eidos_to_donate < 0.0001) {
-    // too small
-    return;
-  }
-  const eidos_to_donate_str = eidos_to_donate.toFixed(4);
-  await send_eidos(account, 'thinkmachine', eidos_to_donate_str, 'donated from ' + account);
-  console.info('Donated ' + eidos_to_donate_str + ' EIDOS to the author.');
-  prev_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, {
-    fetch,
-  });
-}
+// async function donate() {
+//   const DONATION_RATIO = 0.05; // 5%
+//   const current_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
+//   const increased = current_eidos_balance - prev_eidos_balance;
+//   if (increased > 50) {
+//     // It's impossible to mine over 50 EIDOS in 10 seconds, so
+//     // this must be a new deposit coming in
+//     return;
+//   }
+//   const eidos_to_donate = increased * DONATION_RATIO;
+//   if (eidos_to_donate < 0.0001) {
+//     // too small
+//     return;
+//   }
+//   const eidos_to_donate_str = eidos_to_donate.toFixed(4);
+//   await send_eidos(account, 'thinkmachine', eidos_to_donate_str, 'donated from ' + account);
+//   console.info('Donated ' + eidos_to_donate_str + ' EIDOS to the author.');
+//   prev_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, {
+//     fetch,
+//   });
+// }
 
 /**
  * @param {number} num_actions - Number of actions.
@@ -376,7 +378,7 @@ async function run() {
     APIs.splice(0, APIs.length, ...apis);
   }, 1000 * 3600); // update API_ENDPOINTS and APIs every hour
 
-  if (argv.donation) {
-    setInterval(donate, 30000); // 30 seconds
-  }
+  // if (argv.donation) {
+  //   setInterval(donate, 30000); // 30 seconds
+  // }
 })();
