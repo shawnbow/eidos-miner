@@ -52,17 +52,20 @@ const API_ENDPOINTS = [
   'https://mainnet.meet.one',
   'https://eos.infstones.io',
   'https://eos.eoscafeblock.com',
+  'https://eospush.tokenpocket.pro',
   'http://peer1.eoshuobipool.com:8181',
+  'http://openapi.eos.ren',
+  'https://api.eosdetroit.io',
   'https://eos.newdex.one',
-  'https://node.betdice.one',
+  'https://api.eosnewyork.io',
+  'https://api-mainnet.starteos.io',
+  'https://api.main.alohaeos.com',
   'https://api.redpacketeos.com',
   'https://api.eoseoul.io',
   'https://eos.infstones.io',
   'https://api.eossweden.org',
-  'https://api-mainnet.starteos.io',
   'https://mainnet.eoscannon.io',
   'https://api.eossweden.org',
-  'https://api.main.alohaeos.com',
   'https://bp.whaleex.com',
   'https://api.helloeos.com.cn',
   'https://api.eosn.io',
@@ -92,6 +95,7 @@ const APIs = API_ENDPOINTS.map(url => create_api(url));
 
 function get_random_api() {
   const index = Math.floor(Math.random() * APIs.length);
+  // console.log(API_ENDPOINTS[index]);
   return APIs[index];
 }
 
