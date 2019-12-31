@@ -59,7 +59,7 @@ const API_ENDPOINTS = [
   'https://eos.eoscafeblock.com',
   'https://api.eosdetroit.io',
   'https://eos.newdex.one',
-  'http://peer1.eoshuobipool.com:8181',
+  // 'http://peer1.eoshuobipool.com:8181',
   'https://api.eosnewyork.io',
   // 'https://api-mainnet.starteos.io',
   'https://api.main.alohaeos.com',
