@@ -64,7 +64,7 @@ const API_ENDPOINTS = [
   // 'https://api-mainnet.starteos.io',
   'https://api.main.alohaeos.com',
   'https://api.redpacketeos.com',
-  'https://api.eoseoul.io',
+  // 'https://api.eoseoul.io',
   'https://eos.infstones.io',
   "https://api.eossweden.se",
   'https://api.eossweden.org',
