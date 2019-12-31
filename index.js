@@ -47,31 +47,35 @@ const account = argv.account;
 const signatureProvider = new JsSignatureProvider([argv.private_key]);
 
 const API_ENDPOINTS = [
-  'https://api1.eosasia.one',
+  "https://eospush.tokenpocket.pro",
   'https://mainnet.eos.dfuse.io',
-  'https://mainnet.meet.one',
+  "https://eos.greymass.com",
+  "https://api.eosn.io",
+  "https://openapi.eos.ren",
+  "https://mainnet.meet.one",
   "https://nodes.get-scatter.com",
+  "https://api1.eosasia.one",
+  "https://mainnet-tw.meet.one",
   'https://eos.eoscafeblock.com',
-  'https://eospush.tokenpocket.pro',
-  'http://peer1.eoshuobipool.com:8181',
-  'http://openapi.eos.ren',
   'https://api.eosdetroit.io',
   'https://eos.newdex.one',
+  'http://peer1.eoshuobipool.com:8181',
   'https://api.eosnewyork.io',
   // 'https://api-mainnet.starteos.io',
   'https://api.main.alohaeos.com',
   'https://api.redpacketeos.com',
   'https://api.eoseoul.io',
   'https://eos.infstones.io',
-  'https://mainnet.eoscannon.io',
+  "https://api.eossweden.se",
   'https://api.eossweden.org',
+  'https://mainnet.eoscannon.io',
   'https://bp.whaleex.com',
   'https://api.helloeos.com.cn',
-  'https://api.eosn.io',
   'https://api.zbeos.com',
   'https://api.eosrio.io',
+  "https://mainnet.eoscanada.com",
   'https://api.eoslaomao.com',
-  'https://api.eosbeijing.one',
+  'https://api.eosbeijing.one'
 ];
 
 /**
