@@ -51,6 +51,7 @@ const API_ENDPOINTS = [
   'https://mainnet.eos.dfuse.io',
   'https://mainnet.meet.one',
   'https://eos.infstones.io',
+  "https://nodes.get-scatter.com",
   'https://eos.eoscafeblock.com',
   'https://eospush.tokenpocket.pro',
   'http://peer1.eoshuobipool.com:8181',
