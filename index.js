@@ -64,18 +64,18 @@ const API_ENDPOINTS = [
   // 'https://api-mainnet.starteos.io',
   'https://api.main.alohaeos.com',
   'https://api.redpacketeos.com',
-  // 'https://api.eoseoul.io',
+  'https://api.eoseoul.io',
   'https://eos.infstones.io',
   "https://api.eossweden.se",
   'https://api.eossweden.org',
   'https://mainnet.eoscannon.io',
-  // 'https://bp.whaleex.com',
+  'https://bp.whaleex.com',
   'https://api.helloeos.com.cn',
   'https://api.zbeos.com',
   'https://api.eosrio.io',
   "https://mainnet.eoscanada.com",
   'https://api.eoslaomao.com',
-  'https://api.eosbeijing.one'
+  // 'https://api.eosbeijing.one',
 ];
 
 /**
@@ -241,10 +241,10 @@ async function run_transaction(actions, api) {
     cpu_usage_exceeded = false;
     return;
   }
-
   try {
     const result = await api.transact(
       {
+        max_cpu_usage_ms: 10 * Math.ceil(actions.length / NUM_ACTIONS_MIN),
         actions: actions,
       },
       {
@@ -273,7 +273,7 @@ async function run_transaction(actions, api) {
 
 const CPU_RATE_EXPECTATION = 0.95; // we expect to keep CPU rate at 95%
 const CPU_RATE_RED = 0.99; // Stop mining if CPU rate > 99%
-const NUM_ACTIONS_MIN = 2;
+const NUM_ACTIONS_MIN = 50;
 const NUM_ACTIONS_MAX = 256;
 let num_actions = NUM_ACTIONS_MIN;
 let cpu_rate_ema_slow = 0.0; // decay rate 0.999, recent 1000 data points
