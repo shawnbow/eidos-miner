@@ -192,30 +192,6 @@ async function send_eidos(from, to, quantity, memo = '') {
   return await run_transaction([action], api);
 }
 
-let prev_eidos_balance = 0;
-
-// async function donate() {
-//   const DONATION_RATIO = 0.05; // 5%
-//   const current_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
-//   const increased = current_eidos_balance - prev_eidos_balance;
-//   if (increased > 50) {
-//     // It's impossible to mine over 50 EIDOS in 10 seconds, so
-//     // this must be a new deposit coming in
-//     return;
-//   }
-//   const eidos_to_donate = increased * DONATION_RATIO;
-//   if (eidos_to_donate < 0.0001) {
-//     // too small
-//     return;
-//   }
-//   const eidos_to_donate_str = eidos_to_donate.toFixed(4);
-//   await send_eidos(account, 'thinkmachine', eidos_to_donate_str, 'donated from ' + account);
-//   console.info('Donated ' + eidos_to_donate_str + ' EIDOS to the author.');
-//   prev_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, {
-//     fetch,
-//   });
-// }
-
 /**
  * @param {number} num_actions - Number of actions.
  * @param {string} account - EOS account, 12 letters.
@@ -229,16 +205,16 @@ function create_actions(num_actions, account) {
   return quantities.map(quantity => create_action(account, quantity));
 }
 
-let cpu_usage_exceeded = false;
 
 /**
  * @param {Array<Object>} actions - Number of actions.
  * @param {Api} api - EOS account, 12 letters.
  * @returns {Promise<Object|undefined>}
  */
+let transaction_pause = false;
 async function run_transaction(actions, api) {
-  if (cpu_usage_exceeded) {
-    cpu_usage_exceeded = false;
+  if (transaction_pause) {
+    transaction_pause = false;
     return;
   }
   try {
@@ -252,22 +228,22 @@ async function run_transaction(actions, api) {
         expireSeconds: 300,
       },
     );
-    cpu_usage_exceeded = false;
+    transaction_pause = false;
     return result;
   } catch (e) {
-    if (e instanceof RpcError) {
-      console.log(JSON.stringify(e.json, null, 2));
-      return;
-    }
-
-    if (
-      e.toString().includes('is greater than the maximum billable CPU time for the transaction')
-    ) {
-      cpu_usage_exceeded = true;
-      console.warn(chalk.red('CPU usage exceeded, will not send out a transaction this time'));
-      return;
-    }
-    console.error(e);
+    transaction_pause = true;
+    console.warn(chalk.red(e.json.error.code + '-' + e.json.error.name + '-' + e.json.error.what))
+    return;
+    // if (e instanceof RpcError) {
+    //   console.log(JSON.stringify(e.json, null, 2));
+    //   return;
+    // }
+    // if (e.toString().includes('is greater than the maximum billable CPU time for the transaction')) {
+    //   cpu_usage_exceeded = true;
+    //   console.warn(chalk.red('CPU usage exceeded, will not send out a transaction this time'));
+    //   return;
+    // }
+    // console.error(e);
   }
 }
 
@@ -355,8 +331,8 @@ async function run() {
   });
   console.info(`EOS balance: ${eos_balance}`);
 
-  prev_eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
-  console.info(`EIDOS balance: ${prev_eidos_balance}`);
+  const eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
+  console.info(`EIDOS balance: ${eidos_balance}`);
 
   const cpu_rate = await get_cpu_rate(account, get_random_api().rpc);
   cpu_rate_ema_slow = cpu_rate;
