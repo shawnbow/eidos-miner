@@ -223,8 +223,8 @@ let prev_eidos_balance = 0;
  */
 function create_actions(num_actions, account) {
   const quantities = Array(num_actions)
-    .fill(0.0)
-    .map(() => Math.ceil(Math.random() * 3) * 0.0001)
+    .fill(0.0001)
+//    .map(() => Math.ceil(Math.random() * 3) * 0.0001)
     .map(x => x.toFixed(4));
   return quantities.map(quantity => create_action(account, quantity));
 }
