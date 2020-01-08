@@ -346,7 +346,7 @@ async function run() {
     return;
   }
 
-  setInterval(run, 1000); // Mine EIDOS every second
+  setInterval(run, 5000); // Mine EIDOS every second
 
   if (argv.num_actions <= 0) {
     setInterval(adjust_num_actions, 30000); // adjust num_actions every 60 seconds
