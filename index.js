@@ -196,17 +196,18 @@ function create_actions(num_actions, account) {
  * @param {Api} api - EOS account, 12 letters.
  * @returns {Promise<Object|undefined>}
  */
-let transaction_pause = false;
-async function run_transaction(actions, api, trx_op = {}) {
-  if (transaction_pause) {
-    console.log("transaction_pause once!")
-    transaction_pause = false;
+let tx_pause = false;
+async function run_transaction(actions, api, tx_op = {}) {
+  if (tx_pause) {
+    console.warn(chalk.red(`pause mine once: num_actions=${actions.length}, tx_op=${tx_op}`));
+    tx_pause = false;
     return;
   }
+
   try {
     const result = await api.transact(
       {
-        ...trx_op,
+        ...tx_op,
         actions: actions,
       },
       {
@@ -214,10 +215,10 @@ async function run_transaction(actions, api, trx_op = {}) {
         expireSeconds: 300,
       },
     );
-    transaction_pause = false;
+    tx_pause = false;
     return result;
   } catch (e) {
-    transaction_pause = true;
+    tx_pause = true;
     console.warn(chalk.red(e.json.error.code + '-' + e.json.error.name + '-' + e.json.error.what))
     return null;
     // if (e instanceof RpcError) {
