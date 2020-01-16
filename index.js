@@ -199,7 +199,7 @@ function create_actions(num_actions, account) {
 let tx_pause = false;
 async function run_transaction(actions, api, tx_op = {}) {
   if (tx_pause) {
-    console.warn(chalk.red(`pause mine once: num_actions=${actions.length}, tx_op=${tx_op}`));
+    console.warn(chalk.yellow(`pause mine once: num_actions=${actions.length}, tx_op=${JSON.stringify(tx_op)}`));
     tx_pause = false;
     return;
   }
