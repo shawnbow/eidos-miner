@@ -5,7 +5,7 @@ const fetch = require('node-fetch'); // node only; not needed in browsers
 const chalk = require('chalk');
 const figlet = require('figlet');
 const yargs = require('yargs');
-const getApiEndpoints = require('eos-endpoint').default;
+// const getApiEndpoints = require('eos-endpoint').default;
 
 const { Api, JsonRpc, RpcError } = require('eosjs');
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig'); // development only
@@ -15,7 +15,7 @@ const { isValidPrivate, privateToPublic } = require('eosjs-ecc');
 const { argv } = yargs
   .options({
     account: {
-      description: 'Your EOS account, must be 12 letters',
+      description: 'Your EOS account',
       type: 'string',
       demandOption: true,
     },
@@ -24,27 +24,38 @@ const { argv } = yargs
       type: 'string',
       demandOption: true,
     },
+    mine_type: {
+      description: '<EIDOS|POW>',
+      type: 'string',
+      demandOption: true,
+    },
     num_actions: {
       description: 'The number of actions per transaction, 0 means automatic',
       type: 'number',
       default: 0,
-    } // ,
-    // donation: {
-    //   description: 'Donate 5% of mined EIDOS to the author',
-    //   type: 'boolean',
-    //   default: false,
-    // },
+    }
   })
   .check(function(argv) {
-    if (isValidPrivate(argv.private_key)) {
-      return true;
-    } else {
+    if (!isValidPrivate(argv.private_key)) {
       throw new Error('Error: private_key is invalid!');
     }
+    if (argv.mine_type !== 'EIDOS' && argv.mine_type !== 'POW') {
+      throw new Error('Error: mine_type is invalid!');
+    }
+    return true;
   });
 
 const account = argv.account;
 const signatureProvider = new JsSignatureProvider([argv.private_key]);
+
+const eos_token = {
+  code: 'eosio.token',
+  symbol: 'EOS',
+}
+const mine_token = {
+  code: argv.mine_type === 'EIDOS' ? 'eidosonecoin' : 'eosiopowcoin',
+  symbol: argv.mine_type,
+}
 
 const API_ENDPOINTS = [
   "https://eospush.tokenpocket.pro",
@@ -59,9 +70,7 @@ const API_ENDPOINTS = [
   'https://eos.eoscafeblock.com',
   'https://api.eosdetroit.io',
   'https://eos.newdex.one',
-  // 'http://peer1.eoshuobipool.com:8181',
   'https://api.eosnewyork.io',
-  // 'https://api-mainnet.starteos.io',
   'https://api.main.alohaeos.com',
   'https://api.redpacketeos.com',
   'https://api.eoseoul.io',
@@ -75,6 +84,8 @@ const API_ENDPOINTS = [
   'https://api.eosrio.io',
   "https://mainnet.eoscanada.com",
   'https://api.eoslaomao.com',
+  // 'http://peer1.eoshuobipool.com:8181',
+  // 'https://api-mainnet.starteos.io',
   // 'https://api.eosbeijing.one',
 ];
 
@@ -98,28 +109,31 @@ const APIs = API_ENDPOINTS.map(url => create_api(url));
 
 function get_random_api() {
   const index = Math.floor(Math.random() * APIs.length);
-  // console.log(API_ENDPOINTS[index]);
   return APIs[index];
 }
 
 /**
- * @param {string} account - EOS account, 12 letters.
+ * @param {string} account - EOS account.
  * @param {JsonRpc} rpc - JsonRpc.
  */
 async function query_eos_balance(account, rpc) {
-  const balance_info = await rpc.get_currency_balance('eosio.token', account, 'EOS');
+  const balance_info = await rpc.get_currency_balance(eos_token.code, account, eos_token.symbol);
   const balance = parseFloat(balance_info[0].split(' ')[0]);
   return balance;
 }
 
 /**
- * @param {string} account - EOS account, 12 letters.
+ * @param {string} account - EOS account.
  * @param {JsonRpc} rpc - JsonRpc.
  */
-async function query_eidos_balance(account, rpc) {
-  const balance_info = await rpc.get_currency_balance('eidosonecoin', account, 'EIDOS');
-  const balance = parseFloat(balance_info[0].split(' ')[0]);
-  return balance;
+async function query_mine_balance(account, rpc) {
+  try {
+    const balance_info = await rpc.get_currency_balance(mine_token.code, account, mine_token.symbol);
+    const balance = parseFloat(balance_info[0].split(' ')[0]);
+    return balance;
+  } catch (e) {
+    return 0;
+  }
 }
 
 /**
@@ -147,7 +161,7 @@ function create_action(account, quantity = '0.0001') {
   assert(typeof quantity === 'string');
 
   return {
-    account: 'eosio.token',
+    account: eos_token.code,
     name: 'transfer',
     authorization: [
       {
@@ -157,39 +171,11 @@ function create_action(account, quantity = '0.0001') {
     ],
     data: {
       from: account,
-      to: 'eidosonecoin',
-      quantity: quantity + ` EOS`,
+      to: mine_token.code,
+      quantity: `${quantity} ${eos_token.symbol}`,
       memo: '',
     },
   };
-}
-
-/**
- * @param {string} from - EOS account, 12 letters.
- * @param {string} to - EOS account, 12 letters.
- * @param {string} quantity - EIDOS quantity.
- * @param {string} memo - memo.
- */
-async function send_eidos(from, to, quantity, memo = '') {
-  assert(typeof quantity === 'string');
-  const action = {
-    account: 'eidosonecoin',
-    name: 'transfer',
-    authorization: [
-      {
-        actor: from,
-        permission: 'active',
-      },
-    ],
-    data: {
-      from: from,
-      to: to,
-      quantity: quantity + ` EIDOS`,
-      memo: memo,
-    },
-  };
-  const api = get_random_api();
-  return await run_transaction([action], api);
 }
 
 /**
@@ -200,7 +186,6 @@ async function send_eidos(from, to, quantity, memo = '') {
 function create_actions(num_actions, account) {
   const quantities = Array(num_actions)
     .fill(0.0001)
-//    .map(() => Math.ceil(Math.random() * 3) * 0.0001)
     .map(x => x.toFixed(4));
   return quantities.map(quantity => create_action(account, quantity));
 }
@@ -212,7 +197,7 @@ function create_actions(num_actions, account) {
  * @returns {Promise<Object|undefined>}
  */
 let transaction_pause = false;
-async function run_transaction(actions, api) {
+async function run_transaction(actions, api, trx_op = {}) {
   if (transaction_pause) {
     transaction_pause = false;
     return;
@@ -220,7 +205,7 @@ async function run_transaction(actions, api) {
   try {
     const result = await api.transact(
       {
-        max_cpu_usage_ms: 10 * Math.ceil(actions.length / NUM_ACTIONS_MIN),
+        ...trx_op,
         actions: actions,
       },
       {
@@ -249,7 +234,7 @@ async function run_transaction(actions, api) {
 
 const CPU_RATE_EXPECTATION = 0.95; // we expect to keep CPU rate at 95%
 const CPU_RATE_RED = 0.99; // Stop mining if CPU rate > 99%
-const NUM_ACTIONS_MIN = 50;
+const NUM_ACTIONS_MIN = 32;
 const NUM_ACTIONS_MAX = 256;
 let num_actions = NUM_ACTIONS_MIN;
 let cpu_rate_ema_slow = 0.0; // decay rate 0.999, recent 1000 data points
@@ -306,16 +291,17 @@ async function run() {
       num_actions = NUM_ACTIONS_MIN;
     }
 
-    const prev_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
+    const prev_balance = await query_mine_balance(account, get_random_api().rpc, { fetch });
 
     const actions = create_actions(num_actions, account);
-    await run_transaction(actions, api);
 
-    const current_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
+    await run_transaction(actions, api, { max_cpu_usage_ms: Math.ceil(num_actions/5) } );
+
+    const current_balance = await query_mine_balance(account, get_random_api().rpc, { fetch });
     const increased = (current_balance - prev_balance).toFixed(4);
     if (increased != '0.0000' && !increased.startsWith('-')) {
       console.info(
-        chalk.green('Mined ' + (current_balance - prev_balance).toFixed(4) + ' EIDOS !!!'),
+        chalk.green(`Mined ${(current_balance - prev_balance).toFixed(4)} ${mine_token.symbol}!`),
       );
     }
   } catch (e) {
@@ -324,15 +310,15 @@ async function run() {
 }
 
 (async () => {
-  console.info(chalk.green(figlet.textSync('EIDOS  Miner')));
+  console.info(chalk.green(figlet.textSync(`${mine_token.symbol}  Miner`)));
 
   const eos_balance = await query_eos_balance(account, get_random_api().rpc, {
     fetch,
   });
-  console.info(`EOS balance: ${eos_balance}`);
+  console.info(`${eos_token.symbol} balance: ${eos_balance}`);
 
-  const eidos_balance = await query_eidos_balance(account, get_random_api().rpc, { fetch });
-  console.info(`EIDOS balance: ${eidos_balance}`);
+  const mine_balance = await query_mine_balance(account, get_random_api().rpc, { fetch });
+  console.info(`${mine_token.symbol} balance: ${mine_balance}`);
 
   const cpu_rate = await get_cpu_rate(account, get_random_api().rpc);
   cpu_rate_ema_slow = cpu_rate;
@@ -346,7 +332,7 @@ async function run() {
     return;
   }
 
-  setInterval(run, 5000); // Mine EIDOS every second
+  setInterval(run, 2000); // Mine per 2s
 
   if (argv.num_actions <= 0) {
     setInterval(adjust_num_actions, 30000); // adjust num_actions every 60 seconds
@@ -354,14 +340,11 @@ async function run() {
     num_actions = argv.num_actions;
   }
 
-  setInterval(async () => {
-    const api_endpoints = (await getApiEndpoints()).map(x => x.url);
-    API_ENDPOINTS.splice(0, API_ENDPOINTS.length, ...api_endpoints);
-    const apis = API_ENDPOINTS.map(url => create_api(url));
-    APIs.splice(0, APIs.length, ...apis);
-  }, 1000 * 3600); // update API_ENDPOINTS and APIs every hour
+  // setInterval(async () => {
+  //   const api_endpoints = (await getApiEndpoints()).map(x => x.url);
+  //   API_ENDPOINTS.splice(0, API_ENDPOINTS.length, ...api_endpoints);
+  //   const apis = API_ENDPOINTS.map(url => create_api(url));
+  //   APIs.splice(0, APIs.length, ...apis);
+  // }, 1000 * 3600); // update API_ENDPOINTS and APIs every hour
 
-  // if (argv.donation) {
-  //   setInterval(donate, 30000); // 30 seconds
-  // }
 })();
