@@ -295,7 +295,7 @@ async function run() {
 
     const actions = create_actions(num_actions, account);
 
-    await run_transaction(actions, api, { max_cpu_usage_ms: Math.ceil(num_actions/5) } );
+    await run_transaction(actions, api, { max_cpu_usage_ms: Math.ceil(num_actions/5) + 3 } );
 
     const current_balance = await query_mine_balance(account, get_random_api().rpc, { fetch });
     const increased = (current_balance - prev_balance).toFixed(4);
