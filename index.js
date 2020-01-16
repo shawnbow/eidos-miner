@@ -199,6 +199,7 @@ function create_actions(num_actions, account) {
 let transaction_pause = false;
 async function run_transaction(actions, api, trx_op = {}) {
   if (transaction_pause) {
+    console.log("transaction_pause once!")
     transaction_pause = false;
     return;
   }
@@ -218,7 +219,7 @@ async function run_transaction(actions, api, trx_op = {}) {
   } catch (e) {
     transaction_pause = true;
     console.warn(chalk.red(e.json.error.code + '-' + e.json.error.name + '-' + e.json.error.what))
-    return;
+    return null;
     // if (e instanceof RpcError) {
     //   console.log(JSON.stringify(e.json, null, 2));
     //   return;
@@ -287,7 +288,7 @@ async function run() {
       cpu_rate_ema_slow > CPU_RATE_RED
     ) {
       // 1- (CPU Usage of one transaction / Total time rented)
-      console.warn(chalk.red(`CPU is too busy, set num_actions = ${NUM_ACTIONS_MIN}.`));
+      // console.warn(chalk.red(`CPU is too busy, set num_actions = ${NUM_ACTIONS_MIN}.`));
       num_actions = NUM_ACTIONS_MIN;
     }
 
