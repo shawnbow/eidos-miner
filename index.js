@@ -121,9 +121,13 @@ function get_random_api() {
  * @param {JsonRpc} rpc - JsonRpc.
  */
 async function query_eos_balance(account, rpc) {
-  const balance_info = await rpc.get_currency_balance(eos_token.code, account, eos_token.symbol);
-  const balance = parseFloat(balance_info[0].split(' ')[0]);
-  return balance;
+  try {
+    const balance_info = await rpc.get_currency_balance(eos_token.code, account, eos_token.symbol);
+    const balance = parseFloat(balance_info[0].split(' ')[0]);
+    return balance;
+  } catch (e) {
+    return 0;
+  }
 }
 
 /**
@@ -318,9 +322,7 @@ async function run() {
 (async () => {
   console.info(chalk.green(figlet.textSync(`${mine_token.symbol}  Miner`)));
 
-  const eos_balance = await query_eos_balance(account, get_random_api().rpc, {
-    fetch,
-  });
+  const eos_balance = await query_eos_balance(account, get_random_api().rpc, { fetch });
   console.info(`${eos_token.symbol} balance: ${eos_balance}`);
 
   const mine_balance = await query_mine_balance(account, get_random_api().rpc, { fetch });
@@ -341,7 +343,7 @@ async function run() {
   setInterval(run, 2000); // Mine per 2s
 
   if (argv.num_actions <= 0) {
-    setInterval(adjust_num_actions, 30000); // adjust num_actions every 60 seconds
+    setInterval(adjust_num_actions, 60000); // adjust num_actions every 60 seconds
   } else {
     num_actions = argv.num_actions;
   }
